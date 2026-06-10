@@ -1,1 +1,1 @@
-ПРАКТИКУМ З ПРОГРАМУВАННЯ No1
+ipz-24-1-9-programming-practice-2026
