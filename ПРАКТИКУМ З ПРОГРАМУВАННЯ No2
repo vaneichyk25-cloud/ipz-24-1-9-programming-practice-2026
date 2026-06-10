@@ -1,0 +1,253 @@
+Завдання No1.
+
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+int main() {
+    double x, epsilon;
+    int k;
+    string eps_input;
+
+    cout << "x=";
+    cin >> x;
+
+    cout << "k=";
+    cin >> k;
+
+    cout << "e=";
+    cin >> eps_input;
+
+    // Обробка різних форматів введення
+    stringstream ss(eps_input);
+    if (eps_input.find('e') != string::npos || eps_input.find('E') != string::npos) {
+        ss >> epsilon;
+    }
+    else if (eps_input.find('.') != string::npos) {
+        ss >> epsilon;
+    }
+    else {
+        int signs;
+        ss >> signs;
+        epsilon = 1.0;
+        for (int i = 0; i < signs; i++) {
+            epsilon /= 10.0;
+        }
+    }
+
+    double y = 1.0;
+    double delta = 1.0;
+    int iteration = 1;
+
+    
+
+    while (fabs(delta) >= epsilon) {
+        delta = (1.0 / k) * (x / pow(y, k - 1) - y);
+        y = y + delta;
+
+        cout << "iteration:" << iteration
+            << ", delta=" << fixed << setprecision(6) << delta
+            << ", y=" << fixed << setprecision(6) << y << "\n";
+
+        iteration++;
+    }
+
+    return 0;
+}
+
+Завдання No2.
+
+#include <iostream>
+#include <string>
+#include <windows.h>
+
+using namespace std;
+
+// Функція для перевірки, чи є рік високосним
+bool isLeapYear(int year) {
+    // Високосний рік: ділиться на 4, але не ділиться на 100,
+    // або ділиться на 400
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+// Функція для перевірки коректності дати
+bool isValidDate(int day, int month, int year) {
+    if (year < 1 || month < 1 || month > 12 || day < 1) {
+        return false;
+    }
+
+    // Кількість днів у місяцях
+    int daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+    // Корекція для лютого у високосний рік
+    if (isLeapYear(year)) {
+        daysInMonth[1] = 29;
+    }
+
+    return day <= daysInMonth[month - 1];
+}
+
+// Функція для обчислення номера дня тижня за формулою Зеллера
+int getDayOfWeekNumber(int day, int month, int year) {
+    // Якщо місяць січень або лютий, вважаємо їх як 13 та 14 місяці попереднього року
+    if (month == 1 || month == 2) {
+        month += 12;
+        year--;
+    }
+
+    // Формула Зеллера для Григоріанського календаря
+    int K = year % 100;          // Рік у столітті
+    int J = year / 100;          // Століття
+    int h = (day + (13 * (month + 1)) / 5 + K + K / 4 + J / 4 + 5 * J) % 7;
+
+    // Повертає: 0 = субота, 1 = неділя, 2 = понеділок, ..., 6 = п'ятниця
+    return h;
+}
+
+// Функція для отримання назви дня тижня за номером
+string getDayName(int dayNumber) {
+    switch (dayNumber) {
+    case 0: return "Субота";
+    case 1: return "Неділя";
+    case 2: return "Понеділок";
+    case 3: return "Вівторок";
+    case 4: return "Середа";
+    case 5: return "Четвер";
+    case 6: return "П'ятниця";
+    default: return "Невідомий день";
+    }
+}
+
+int main() {
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
+    int day, month, year;
+
+    // Введення дати
+    cout << "Введіть день: ";
+    cin >> day;
+
+    cout << "Введіть місяць: ";
+    cin >> month;
+
+    cout << "Введіть рік: ";
+    cin >> year;
+
+    // Перевірка коректності дати
+    if (!isValidDate(day, month, year)) {
+        cout << "Помилка: Введено некоректну дату!" << endl;
+        return 1;
+    }
+
+    // Обчислення дня тижня
+    int dayNumber = getDayOfWeekNumber(day, month, year);
+    string dayName = getDayName(dayNumber);
+
+    // Виведення результату (як у прикладі)
+    cout << "\nДень тижня: " << dayName << endl;
+
+    return 0;
+}
+
+Завдання No3.
+
+#include <iostream>
+#include <cmath>
+#include <complex>
+#include <windows.h>
+
+using namespace std;
+
+// Визначаємо PI вручну, якщо вона не визначена
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+int main() {
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
+    double a, b, c;
+
+    cout << "Введення коефіцієнтів кубічного рівняння" << endl;
+    cout << "Введіть коефіцієнт a: ";
+    cin >> a;
+    cout << "Введіть коефіцієнт b: ";
+    cin >> b;
+    cout << "Введіть коефіцієнт c: ";
+    cin >> c;
+    cout << endl;
+
+    // Зведене кубічне рівняння: t^3 + pt + q = 0
+    // Заміна: x = t - a/3
+    double p = b - a * a / 3.0;
+    double q = (2.0 * a * a * a) / 27.0 - (a * b) / 3.0 + c;
+
+    // Дискримінант
+    double D = (q * q) / 4.0 + (p * p * p) / 27.0;
+
+    complex<double> x1, x2, x3;
+
+    if (fabs(D) < 1e-10) {  // D ≈ 0 - кратні корені
+        double u = cbrt(-q / 2.0);
+        double t1 = 2.0 * u;
+        double t2 = -u;
+
+        x1 = t1 - a / 3.0;
+        x2 = t2 - a / 3.0;
+        x3 = t2 - a / 3.0;
+    }
+    else if (D > 0) {  // Один дійсний і два комплексних корені
+        double sqrtD = sqrt(D);
+        double u = cbrt(-q / 2.0 + sqrtD);
+        double v = cbrt(-q / 2.0 - sqrtD);
+
+        double t1 = u + v;
+
+        x1 = t1 - a / 3.0;
+        x2 = complex<double>(-(u + v) / 2.0 - a / 3.0, (u - v) * sqrt(3.0) / 2.0);
+        x3 = complex<double>(-(u + v) / 2.0 - a / 3.0, -(u - v) * sqrt(3.0) / 2.0);
+    }
+    else {  // D < 0 - три дійсних корені (формула Вієта)
+        double phi = acos(-q / (2.0 * sqrt(-p * p * p / 27.0)));
+        double r = 2.0 * sqrt(-p / 3.0);
+
+        double t1 = r * cos(phi / 3.0);
+        double t2 = r * cos((phi + 2.0 * M_PI) / 3.0);
+        double t3 = r * cos((phi + 4.0 * M_PI) / 3.0);
+
+        x1 = t1 - a / 3.0;
+        x2 = t2 - a / 3.0;
+        x3 = t3 - a / 3.0;
+    }
+
+    // Виведення результатів
+    cout << "Результаты:" << endl;
+
+    if (abs(x1.imag()) < 1e-10) {
+        cout << "x1 = " << x1.real() << endl;
+    }
+    else {
+        cout << "x1 = " << x1.real() << " + " << x1.imag() << "*i" << endl;
+    }
+
+    if (abs(x2.imag()) < 1e-10) {
+        cout << "x2 = " << x2.real() << endl;
+    }
+    else {
+        cout << "x2 = " << x2.real() << " + " << x2.imag() << "*i" << endl;
+    }
+
+    if (abs(x3.imag()) < 1e-10) {
+        cout << "x3 = " << x3.real() << endl;
+    }
+    else {
+        cout << "x3 = " << x3.real() << " + " << x3.imag() << "*i" << endl;
+    }
+
+    return 0;
+}
+
