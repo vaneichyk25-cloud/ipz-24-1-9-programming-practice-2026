@@ -1,0 +1,232 @@
+Завдання No1.
+
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <windows.h>
+
+using namespace std;
+
+// Функція для обчислення факторіалу
+double factorial(int n) {
+    double result = 1.0;
+    for (int i = 2; i <= n; i++) {
+        result *= i;
+    }
+    return result;
+}
+
+// Функція для обчислення косинуса через ряд Тейлора
+double cosTaylor(double x, double epsilon) {
+    double sum = 0.0;
+    int n = 0;
+    double term;
+
+    do {
+        term = pow(-1, n) * pow(x, 2 * n) / factorial(2 * n);
+        sum += term;
+        n++;
+    } while (fabs(term) >= epsilon);
+
+    return sum;
+}
+
+int main() {
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
+    double x1, x2, dx, epsilon;
+
+    // Введення даних згідно з прикладом
+    cout << "x1=";
+    cin >> x1;
+    cout << "x2=";
+    cin >> x2;
+    cout << "dx=";
+    cin >> dx;
+    cout << "Epsilon=";
+    cin >> epsilon;
+
+    cout << endl;
+
+    // Виведення заголовка як у прикладі
+    cout << "--x--    --cos_x--    --cos_t--    --cos_x-cos_t--" << endl;
+
+    // Переводимо границі в радіани для порівняння
+    double x_rad_end = x2 * acos(-1.0) / 180.0;
+
+    for (double x_deg = x1; x_deg <= x2 + 1e-9; x_deg += dx) {
+        // Переводимо в радіани
+        double x_rad = x_deg * acos(-1.0) / 180.0;
+
+        // Обчислюємо косинус через ряд Тейлора
+        double cos_taylor = cosTaylor(x_rad, epsilon);
+
+        // Обчислюємо косинус через стандартну функцію (табличне значення)
+        double cos_std = cos(x_rad);
+
+        // Обчислюємо різницю
+        double difference = cos_taylor - cos_std;
+
+        // Виводимо результат з форматуванням як у прикладі
+        cout << fixed << setprecision(3) << x_deg << "    "
+            << setprecision(6) << cos_taylor << "    "
+            << setprecision(6) << cos_std << "    "
+            << setprecision(6) << difference << endl;
+    }
+
+    return 0;
+}
+
+Завдання No2.
+
+#include <iostream>
+#include <cmath>
+#include <iomanip>
+#include <windows.h>
+
+using namespace std;
+
+int main() {
+    SetConsoleCP(65001);
+    SetConsoleOutputCP(65001);
+    int n;
+    double epsilon;
+
+    cout << "A program for solves SLAR" << endl;
+    cout << endl;
+    cout << "SLAR" << endl;
+    cout << "A11X1 + A12X2 + ... + A1nXn = B1" << endl;
+    cout << "A21X1 + A22X2 + ... + A2nXn = B2" << endl;
+    cout << "..." << endl;
+    cout << "An1X1 + An2X2 + ... + AnnXn = Bn" << endl;
+    cout << endl;
+
+    cout << "Enter the size: ";
+    cin >> n;
+
+    cout << "Epsilon: ";
+    cin >> epsilon;
+
+    // Виділення пам'яті під динамічні масиви
+    double** A = new double* [n];
+    for (int i = 0; i < n; i++) {
+        A[i] = new double[n];
+    }
+
+    double* B = new double[n];
+    double* X = new double[n];      // Поточні наближення
+    double* X_prev = new double[n]; // Попередні наближення
+    double* X_new = new double[n];  // Нові наближення
+
+    // Введення коефіцієнтів матриці A
+    cout << endl;
+    cout << "Enter coefficients:" << endl;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cout << "A" << i + 1 << j + 1 << ": ";
+            cin >> A[i][j];
+        }
+    }
+
+    // Введення вільних членів B
+    cout << endl;
+    cout << "Enter free members:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "B" << i + 1 << ": ";
+        cin >> B[i];
+    }
+
+    // Приведення до вигляду, зручного для ітерацій
+    // x_i = (b_i - sum_{j!=i} a_ij * x_j) / a_ii
+    // Перевірка, чи можна застосувати метод (діагональні елементи не повинні бути нульовими)
+    for (int i = 0; i < n; i++) {
+        if (fabs(A[i][i]) < 1e-10) {
+            cout << "Помилка: нульовий діагональний елемент A" << i + 1 << i + 1 << endl;
+            cout << "Метод простої ітерації не можна застосувати." << endl;
+
+            // Звільнення пам'яті
+            for (int k = 0; k < n; k++) {
+                delete[] A[k];
+            }
+            delete[] A;
+            delete[] B;
+            delete[] X;
+            delete[] X_prev;
+            delete[] X_new;
+
+            return 1;
+        }
+    }
+
+    // Початкове наближення (нульове)
+    for (int i = 0; i < n; i++) {
+        X_prev[i] = 0.0;
+    }
+
+    int iterations = 0;
+    double maxDiff;
+
+    // Ітераційний процес
+    do {
+        maxDiff = 0.0;
+
+        // Обчислення нових наближень
+        for (int i = 0; i < n; i++) {
+            double sum = 0.0;
+            for (int j = 0; j < n; j++) {
+                if (j != i) {
+                    sum += A[i][j] * X_prev[j];
+                }
+            }
+            X_new[i] = (B[i] - sum) / A[i][i];
+        }
+
+        // Обчислення максимальної різниці між новим і попереднім наближенням
+        for (int i = 0; i < n; i++) {
+            double diff = fabs(X_new[i] - X_prev[i]);
+            if (diff > maxDiff) {
+                maxDiff = diff;
+            }
+        }
+
+        // Оновлення значень
+        for (int i = 0; i < n; i++) {
+            X_prev[i] = X_new[i];
+        }
+
+        iterations++;
+
+        // Запобігання нескінченному циклу
+        if (iterations > 10000) {
+            cout << "Досягнуто максимальну кількість ітерацій!" << endl;
+            break;
+        }
+
+    } while (maxDiff >= epsilon);
+
+    // Копіюємо результат
+    for (int i = 0; i < n; i++) {
+        X[i] = X_new[i];
+    }
+
+    // Виведення результату
+    cout << endl;
+    cout << "Result:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "x" << i + 1 << ": " << fixed << setprecision(3) << X[i] << endl;
+    }
+    cout << endl;
+    cout << "Кількість ітерацій: " << iterations << endl;
+
+    // Звільнення пам'яті
+    for (int i = 0; i < n; i++) {
+        delete[] A[i];
+    }
+    delete[] A;
+    delete[] B;
+    delete[] X;
+    delete[] X_prev;
+    delete[] X_new;
+
+    return 0;
+}
