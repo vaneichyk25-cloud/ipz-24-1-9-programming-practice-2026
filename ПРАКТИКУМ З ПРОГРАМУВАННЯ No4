@@ -1,0 +1,106 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <math.h>
+
+const double PI = 3.141592653589793;
+
+// Структура комплексного числа
+typedef struct
+{
+    double re; // действительная часть
+    double im; // мнимая часть
+} complex;
+
+// Функция деления комплексных чисел
+complex divideComplex(complex z1, complex z2)
+{
+    complex result;
+
+    double denom = z2.re * z2.re + z2.im * z2.im;
+
+    result.re = (z1.re * z2.re + z1.im * z2.im) / denom;
+    result.im = (z1.im * z2.re - z1.re * z2.im) / denom;
+
+    return result;
+}
+
+int main()
+{
+    double R, L, C;
+    double fmin, fmax, step;
+
+    printf("Enter L(mHn):\n");
+    scanf("%lf", &L);
+
+    printf("Enter C(mcF):\n");
+    scanf("%lf", &C);
+
+    printf("Enter F_min:\n");
+    scanf("%lf", &fmin);
+
+    printf("Enter F_max:\n");
+    scanf("%lf", &fmax);
+
+    printf("Enter R(Ohm):\n");
+    scanf("%lf", &R);
+
+    printf("Enter step:\n");
+    scanf("%lf", &step);
+
+    // Проверки
+    if (L <= 0 || C <= 0 || R <= 0 || fmin <= 0 || fmax <= 0 || step <= 0)
+    {
+        printf("Error! All parameters must be positive.\n");
+        return 1;
+    }
+
+    if (fmin > fmax)
+    {
+        printf("Error! f_min must be less than or equal to f_max.\n");
+        return 1;
+    }
+
+    // Перевод единиц измерения
+    double Lh = L / 1000.0;      // мГн -> Гн
+    double Cf = C / 1000000.0;   // мкФ -> Ф
+
+    // Резонансная частота
+    double f0 = 1.0 / (2.0 * PI * sqrt(Lh * Cf));
+
+    printf("\nresonance frequency: %.7lf\n\n", f0);
+
+    // Цикл по частотам
+    for (double f = fmin; f <= fmax; f += step)
+    {
+        double w = 2.0 * PI * f;
+
+        /*
+            Вариант №2
+
+                    L
+               -------- + i * R/(wC)
+                    C
+
+        Z = -------------------------
+             R + i(wL - 1/(wC))
+        */
+
+        complex numerator;
+        complex denominator;
+
+        numerator.re = Lh / Cf;
+        numerator.im = R / (w * Cf);
+
+        denominator.re = R;
+        denominator.im = w * Lh - 1.0 / (w * Cf);
+
+        complex Z = divideComplex(numerator, denominator);
+
+        printf("f=%.0lf\t Z= %.6e + i * %.6e\n",
+            f,
+            Z.re,
+            Z.im);
+    }
+
+    return 0;
+}
